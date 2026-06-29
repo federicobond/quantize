@@ -15,16 +15,16 @@ Quick Overview
 ### Usage
 
 ```javascript
-var quantize = require('@federicobond/quantize');
+import quantize from '@federicobond/quantize';
 
-var arrayOfPixels = [[190,197,190], [202,204,200], [207,214,210], [211,214,211], [205,207,207]];
-var maximumColorCount = 4;
+const arrayOfPixels = [[190, 197, 190], [202, 204, 200], [207, 214, 210], [211, 214, 211], [205, 207, 207]];
+const maximumColorCount = 4;
 
-var colorMap = quantize(arrayOfPixels, maximumColorCount);
+const colorMap = quantize(arrayOfPixels, maximumColorCount);
 ```
 
-* `arrayOfPixels` - An array of pixels (represented as [R,G,B arrays]) to quantize
-* `maxiumColorCount` - The maximum number of colours allowed in the reduced palette
+* `arrayOfPixels` - An array of pixels (represented as [R, G, B] arrays) to quantize
+* `maximumColorCount` - The maximum number of colors allowed in the reduced palette
 
 ##### Reduced Palette
 
