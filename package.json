@@ -1,8 +1,8 @@
 {
-  "name": "@lokesh.dhakar/quantize",
+  "name": "@federicobond/quantize",
   "version": "1.4.0",
   "description": "A node.js module for color quantization, based on Leptonica.",
-  "homepage": "https://github.com/olivierlesnicki/quantize",
+  "homepage": "https://github.com/federicobond/quantize",
   "author": "Olivier Lesnicki (https://github.com/olivierlesnicki)",
   "files": [
     "dist/index.*"
@@ -15,8 +15,13 @@
   ],
   "contributors": [
     "Nick Rabinowitz (https://github.com/nrabinowitz)",
-    "Olivier Lesnicki (https://github.com/olivierlesnicki)"
+    "Mike Bostock (https://github.com/mbostock)",
+    "Lokesh Dhakar (https://github.com/lokesh)",
+    "Federico Bond (https://github.com/federicobond)"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "source": "src/quantize.js",
   "main": "dist/index.js",
@@ -33,9 +38,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lokesh/quantize.git"
+    "url": "git+https://github.com/federicobond/quantize.git"
   },
   "bugs": {
-    "url": "https://github.com/lokesh/quantize/issues"
+    "url": "https://github.com/federicobond/quantize/issues"
   }
 }
