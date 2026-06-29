@@ -217,7 +217,7 @@ var MMCQ = (function() {
                     for (j = vbox.g1; j <= vbox.g2; j++) {
                         for (k = vbox.b1; k <= vbox.b2; k++) {
                             index = getColorIndex(i, j, k);
-                            npix += (histo[index] || 0);
+                            npix += histo[index];
                         }
                     }
                 }
@@ -254,7 +254,7 @@ var MMCQ = (function() {
                         for (j = vbox.g1; j <= vbox.g2; j++) {
                             for (k = vbox.b1; k <= vbox.b2; k++) {
                                 histoindex = getColorIndex(i, j, k);
-                                hval = histo[histoindex] || 0;
+                                hval = histo[histoindex];
                                 ntot += hval;
                                 rsum += (hval * (i + 0.5) * mult);
                                 gsum += (hval * (j + 0.5) * mult);
@@ -380,41 +380,40 @@ var MMCQ = (function() {
     // histo (1-d array, giving the number of pixels in
     // each quantized region of color space), or null on error
 
+    // Also computes the min/max channel bounds for the initial VBox in the same
+    // pass, stashed on the returned array for vboxFromPixels to read (one pass
+    // over the pixels instead of two).
     function getHisto(pixels) {
         var histosize = 1 << (3 * sigbits),
-            histo = new Array(histosize),
-            index, rval, gval, bval;
-        pixels.forEach(function(pixel) {
-            rval = pixel[0] >> rshift;
-            gval = pixel[1] >> rshift;
-            bval = pixel[2] >> rshift;
-            index = getColorIndex(rval, gval, bval);
-            histo[index] = (histo[index] || 0) + 1;
-        });
-        return histo;
-    }
-
-    function vboxFromPixels(pixels, histo) {
-        var rmin = 1000000,
+            histo = new Int32Array(histosize),
+            rmin = 1000000,
             rmax = 0,
             gmin = 1000000,
             gmax = 0,
             bmin = 1000000,
             bmax = 0,
-            rval, gval, bval;
-        // find min/max
-        pixels.forEach(function(pixel) {
+            index, rval, gval, bval, pixel;
+        for (var p = 0; p < pixels.length; p++) {
+            pixel = pixels[p];
             rval = pixel[0] >> rshift;
             gval = pixel[1] >> rshift;
             bval = pixel[2] >> rshift;
+            index = getColorIndex(rval, gval, bval);
+            histo[index]++;
             if (rval < rmin) rmin = rval;
             else if (rval > rmax) rmax = rval;
             if (gval < gmin) gmin = gval;
             else if (gval > gmax) gmax = gval;
             if (bval < bmin) bmin = bval;
             else if (bval > bmax) bmax = bval;
-        });
-        return new VBox(rmin, rmax, gmin, gmax, bmin, bmax, histo);
+        }
+        histo.bounds = [rmin, rmax, gmin, gmax, bmin, bmax];
+        return histo;
+    }
+
+    function vboxFromPixels(pixels, histo) {
+        var b = histo.bounds;
+        return new VBox(b[0], b[1], b[2], b[3], b[4], b[5], histo);
     }
 
     function medianCutApply(histo, vbox) {
@@ -439,7 +438,7 @@ var MMCQ = (function() {
                 for (j = vbox.g1; j <= vbox.g2; j++) {
                     for (k = vbox.b1; k <= vbox.b2; k++) {
                         index = getColorIndex(i, j, k);
-                        sum += (histo[index] || 0);
+                        sum += histo[index];
                     }
                 }
                 total += sum;
@@ -451,7 +450,7 @@ var MMCQ = (function() {
                 for (j = vbox.r1; j <= vbox.r2; j++) {
                     for (k = vbox.b1; k <= vbox.b2; k++) {
                         index = getColorIndex(j, i, k);
-                        sum += (histo[index] || 0);
+                        sum += histo[index];
                     }
                 }
                 total += sum;
@@ -463,7 +462,7 @@ var MMCQ = (function() {
                 for (j = vbox.r1; j <= vbox.r2; j++) {
                     for (k = vbox.g1; k <= vbox.g2; k++) {
                         index = getColorIndex(j, k, i);
-                        sum += (histo[index] || 0);
+                        sum += histo[index];
                     }
                 }
                 total += sum;
@@ -517,46 +516,38 @@ var MMCQ = (function() {
             // console.log('wrong number of maxcolors');
             return false;
         }
-        // short-circuit
-        if (!pixels.length || maxcolors < 2 || maxcolors > 256) {
-            // console.log('wrong number of maxcolors');
-            return false;
-        }
 
-                
-        // Create an array of unique colors
+        // The distinct colors are only needed to check whether there are already
+        // few enough to return as-is, so bail out once we pass maxcolors instead
+        // of scanning every pixel. Pack r,g,b (each a byte) into one int key for a
+        // cheap, collision-free Set lookup.
         const uniqueColors = [];
         const seenColors = new Set();
+        let tooManyColors = false;
 
         for (let i = 0; i < pixels.length; i++) {
             const color = pixels[i];
-            const colorKey = color.join(',');
-            
+            const colorKey = (color[0] << 16) | (color[1] << 8) | color[2];
+
             if (!seenColors.has(colorKey)) {
                 seenColors.add(colorKey);
                 uniqueColors.push(color);
+                if (uniqueColors.length > maxcolors) {
+                    tooManyColors = true;
+                    break;
+                }
             }
         }
 
         // If the number of unique colors is already less than or equal to maxColors,
         // return these colors directly.
-        if (uniqueColors.length <= maxcolors) {
+        if (!tooManyColors) {
             return new SimpleColorMap(uniqueColors);
         }
 
         // XXX: check color content and convert to grayscale if insufficient
 
-        var histo = getHisto(pixels),
-            histosize = 1 << (3 * sigbits);
-
-        // check that we aren't below maxcolors already
-        var nColors = 0;
-        histo.forEach(function() {
-            nColors++
-        });
-        if (nColors <= maxcolors) {
-            // XXX: generate the new colors from the histo and return
-        }
+        var histo = getHisto(pixels);
 
         // get the beginning vbox from the colors
         var vbox = vboxFromPixels(pixels, histo),
