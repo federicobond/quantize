@@ -1,6 +1,3 @@
-// Type definitions for @lokesh.dhakar/quantize
-// Shipped with the package; copied to dist/index.d.ts on build.
-
 export type RGBColor = [number, number, number];
 
 export interface ColorMap {
