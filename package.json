@@ -1,6 +1,6 @@
 {
   "name": "@federicobond/quantize",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A node.js module for color quantization, based on Leptonica.",
   "homepage": "https://github.com/federicobond/quantize",
   "author": "Olivier Lesnicki (https://github.com/olivierlesnicki)",
