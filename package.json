@@ -21,8 +21,9 @@
   "source": "src/quantize.js",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "microbundle --no-compress --no-sourcemap",
+    "build": "microbundle --no-compress --no-sourcemap && cp src/index.d.ts dist/index.d.ts",
     "watch": "microbundle --no-compress --no-sourcemap watch",
     "test": "jest"
   },
